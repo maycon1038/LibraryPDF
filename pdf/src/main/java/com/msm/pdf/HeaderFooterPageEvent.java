@@ -1,6 +1,7 @@
 package com.msm.pdf;
 
 import android.content.Context;
+import android.content.pm.ApplicationInfo;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 
@@ -129,7 +130,7 @@ import java.util.Locale;
 
 
                 // add copyright
-                footer.addCell(new Phrase("\u00A9 AppComando - " + df.format(new Date()), new Font(Font.FontFamily.HELVETICA, 12, Font.BOLD)));
+                footer.addCell(new Phrase("\u00A9 " +getApplicationName() +" - " + df.format(new Date()), new Font(Font.FontFamily.HELVETICA, 12, Font.BOLD)));
 
                 // add current page count
                 footer.getDefaultCell().setHorizontalAlignment(Element.ALIGN_RIGHT);
@@ -158,5 +159,11 @@ import java.util.Locale;
                     new Phrase(String.valueOf(writer.getPageNumber()), new Font(Font.FontFamily.HELVETICA, 8)),
                     totalWidth, 6, 0);
         }
+
+		private String getApplicationName() {
+			ApplicationInfo applicationInfo = context.getApplicationInfo();
+			int stringId = applicationInfo.labelRes;
+			return stringId == 0 ? applicationInfo.nonLocalizedLabel.toString() : context.getString(stringId);
+		}
     }
 
