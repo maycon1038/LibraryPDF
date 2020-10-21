@@ -176,9 +176,7 @@ public class PDFUtil {
 		}
 	}
 
-
-
-	public PDFUtil setFileOut(File filepart, File imgLogo, String titleHeader, String subTitleHeader, String fileName, int marginLeft, int marginRight, int marginTop, int marginBottom) {
+	public PDFUtil setFileOut(File filepart, File imgLogo, ModelPDF titleHeader, ModelPDF subTitleHeader, String fileName, int marginLeft, int marginRight, int marginTop, int marginBottom) {
 		if (filepart != null && fileName != null) {
 			File f = new File(filepart, fileName);
 			f.deleteOnExit();
@@ -315,7 +313,7 @@ public class PDFUtil {
 						c1.setBackgroundColor(body.getBackground());
 					}
 					if (body.getMyLink() != null) {
-						c1.setCellEvent(new LinkInCell(mtable.get(i).getMyLink()));
+						c1.setCellEvent(new LinkInCell(body.getMyLink()));
 					}
 					table.addCell(c1);
 				}

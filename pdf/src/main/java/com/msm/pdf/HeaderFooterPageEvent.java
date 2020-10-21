@@ -8,22 +8,28 @@ import android.graphics.BitmapFactory;
 import androidx.annotation.RequiresApi;
 
 import com.itextpdf.text.BaseColor;
+import com.itextpdf.text.Chunk;
 import com.itextpdf.text.Document;
 import com.itextpdf.text.DocumentException;
 import com.itextpdf.text.Element;
 import com.itextpdf.text.ExceptionConverter;
 import com.itextpdf.text.Font;
 import com.itextpdf.text.Image;
+import com.itextpdf.text.Paragraph;
 import com.itextpdf.text.Phrase;
 import com.itextpdf.text.Rectangle;
 import com.itextpdf.text.pdf.ColumnText;
+import com.itextpdf.text.pdf.PdfAction;
+import com.itextpdf.text.pdf.PdfAnnotation;
 import com.itextpdf.text.pdf.PdfContentByte;
 import com.itextpdf.text.pdf.PdfName;
 import com.itextpdf.text.pdf.PdfPCell;
+import com.itextpdf.text.pdf.PdfPCellEvent;
 import com.itextpdf.text.pdf.PdfPTable;
 import com.itextpdf.text.pdf.PdfPageEventHelper;
 import com.itextpdf.text.pdf.PdfTemplate;
 import com.itextpdf.text.pdf.PdfWriter;
+import com.msm.pdf.model.ModelPDF;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -39,11 +45,11 @@ import java.util.Locale;
         private PdfTemplate t;
         private Image total;
         private Context context;
-        private String title;
-        private String subTitle;
+        private ModelPDF title;
+        private ModelPDF subTitle;
         private File fileIMG;
 
-		public HeaderFooterPageEvent(Context context, String title, String subTitle, File fileIMG) {
+		public HeaderFooterPageEvent(Context context, ModelPDF title, ModelPDF subTitle, File fileIMG) {
 			this.context = context;
 			this.title = title;
 			this.subTitle = subTitle;
@@ -63,9 +69,13 @@ import java.util.Locale;
 			icon.compress(Bitmap.CompressFormat.PNG, 100, out); // bmp is your Bitmap instance
 			// PNG is a lossless format, the compression factor (100) is ignored
 			// add image
-			title = "PMAM";
-			subTitle = "Polícia Militar do Amazonas";
+			title =  new ModelPDF( "PMAM", null, new Font(Font.FontFamily.HELVETICA, 18),Element.ALIGN_CENTER );
+			title.setColSpan(1);
+			title.setRowSpan(1);
 
+			subTitle =  new ModelPDF( "Polícia Militar do Amazonas", null, new Font(Font.FontFamily.HELVETICA, 18),Element.ALIGN_CENTER );
+			subTitle.setColSpan(1);
+			subTitle.setRowSpan(1);
         }
 
         public void onOpenDocument(PdfWriter writer, Document document) {
@@ -80,15 +90,15 @@ import java.util.Locale;
 
         @Override
         public void onEndPage(PdfWriter writer, Document document) {
-            addHeader(writer);
+			addHeaderPager(writer);
             addFooter(writer);
         }
 
 
-        private void addHeader(PdfWriter writer){
+        private void addHeaderPager(PdfWriter writer){
 
 			if(title != null && subTitle != null){
-
+                   //criando um tabela para cabeçalho com apenas a borda abaixo
 				PdfPTable header = new PdfPTable(2);
 				try {
 					// set defaults
@@ -109,31 +119,27 @@ import java.util.Locale;
 							e.printStackTrace();
 						}
 					}
-
+					Font f = (title.getFont() != null) ? title.getFont() : new Font(Font.FontFamily.HELVETICA, 18, Font.NORMAL);
 					// add text
 					PdfPCell text = new PdfPCell();
 					text.setPaddingBottom(15);
 					text.setPaddingLeft(10);
 					text.setBorder(Rectangle.BOTTOM);
 					text.setBorderColor(BaseColor.LIGHT_GRAY);
-					text.addElement(new Phrase(title, new Font(Font.FontFamily.HELVETICA, 18)));
-					text.addElement(new Phrase(subTitle, new Font(Font.FontFamily.HELVETICA, 14)));
+					text.addElement(new Phrase(title.getTxt(), f));
+					  f = (title.getFont() != null) ? title.getFont() : new Font(Font.FontFamily.HELVETICA, 14, Font.NORMAL);
+					text.addElement(new Phrase(subTitle.getTxt(), f));
 					header.addCell(text);
 
 					// write content
 					header.writeSelectedRows(0, -1, 34, 803, writer.getDirectContent());
 				} catch(DocumentException de) {
 					throw new ExceptionConverter(de);
-				} /*catch (MalformedURLException e) {
-                throw new ExceptionConverter(e);
-            } catch (IOException e) {
-                throw new ExceptionConverter(e);
-            }*/
+				}
 			}
 
         }
-
-        private void addFooter(PdfWriter writer){
+       private void addFooter(PdfWriter writer){
             PdfPTable footer = new PdfPTable(3);
             try {
                 // set defaults
@@ -183,6 +189,21 @@ import java.util.Locale;
 			ApplicationInfo applicationInfo = context.getApplicationInfo();
 			int stringId = applicationInfo.labelRes;
 			return stringId == 0 ? applicationInfo.nonLocalizedLabel.toString() : context.getString(stringId);
+		}
+
+		class LinkInCell implements PdfPCellEvent {
+			protected String url;
+
+			public LinkInCell(String url) {
+				this.url = url;
+			}
+
+			public void cellLayout(PdfPCell cell, Rectangle position, PdfContentByte[] canvases) {
+				PdfWriter writer = canvases[0].getPdfWriter();
+				PdfAction action = new PdfAction(url);
+				PdfAnnotation link = PdfAnnotation.createLink(writer, position, PdfAnnotation.HIGHLIGHT_INVERT, action);
+				writer.addAnnotation(link);
+			}
 		}
     }
 
