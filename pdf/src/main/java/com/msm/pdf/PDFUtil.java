@@ -141,7 +141,6 @@ public class PDFUtil {
 				// adicionar cabeçalho e rodapé
 				HeaderFooterPageEvent event = new HeaderFooterPageEvent(context);
 				writer.setPageEvent(event);
-
 				document.open();
 				// adicionado titulo ao documento
 			} catch (DocumentException | FileNotFoundException e) {
@@ -153,7 +152,7 @@ public class PDFUtil {
 		}
 	}
 
-	public PDFUtil setFileOut(File filepart, String fileName, boolean addheaderAndFoter, int marginLeft, int marginRight, int marginTop, int marginBottom) {
+	public PDFUtil setFileOut(File filepart, String fileName, int marginLeft, int marginRight, int marginTop, int marginBottom) {
 		if (filepart != null && fileName != null) {
 			File f = new File(filepart, fileName);
 			f.deleteOnExit();
@@ -164,14 +163,40 @@ public class PDFUtil {
 			try {
 				writer = PdfWriter.getInstance(document, new FileOutputStream(FILE));
 				// adicionar cabeçalho e rodapé
-				if (addheaderAndFoter) {
-					HeaderFooterPageEvent event = new HeaderFooterPageEvent(context);
-					writer.setPageEvent(event);
-				}
-
-
+				HeaderFooterPageEvent event = new HeaderFooterPageEvent(context);
+				writer.setPageEvent(event);
 				document.open();
 				// adicionado titulo ao documento
+			} catch (DocumentException | FileNotFoundException e) {
+				e.printStackTrace();
+			}
+			return getDefault(context);
+		} else {
+			throw new NullPointerException("File não pode ser null");
+		}
+	}
+
+
+
+	public PDFUtil setFileOut(File filepart, File imgLogo, String titleHeader, String subTitleHeader, String fileName, int marginLeft, int marginRight, int marginTop, int marginBottom) {
+		if (filepart != null && fileName != null) {
+			File f = new File(filepart, fileName);
+			f.deleteOnExit();
+			FILE = new File(f.getPath());
+			//configuração do documento margem etc
+			document = new Document(PageSize.A4, marginLeft, marginRight, marginTop, marginBottom);
+			PdfWriter writer = null;
+			try {
+				writer = PdfWriter.getInstance(document, new FileOutputStream(FILE));
+				HeaderFooterPageEvent event;
+				// adicionar cabeçalho e rodapé
+				if (imgLogo != null && titleHeader != null && subTitleHeader != null) {
+					event = new HeaderFooterPageEvent(context, titleHeader, subTitleHeader, imgLogo);
+				} else {
+					event = new HeaderFooterPageEvent(context);
+				}
+				writer.setPageEvent(event);
+				document.open();
 			} catch (DocumentException | FileNotFoundException e) {
 				e.printStackTrace();
 			}

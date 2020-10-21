@@ -39,9 +39,33 @@ import java.util.Locale;
         private PdfTemplate t;
         private Image total;
         private Context context;
+        private String title;
+        private String subTitle;
+        private File fileIMG;
 
-        public HeaderFooterPageEvent(Context context) {
+		public HeaderFooterPageEvent(Context context, String title, String subTitle, File fileIMG) {
+			this.context = context;
+			this.title = title;
+			this.subTitle = subTitle;
+			this.fileIMG = fileIMG;
+		}
+
+		public HeaderFooterPageEvent(Context context) {
             this.context = context;
+			fileIMG = new File(context.getCacheDir(), "image_pmam.png");
+			Bitmap icon = BitmapFactory.decodeResource(context.getResources(),R.drawable.logo_pmam);
+			FileOutputStream out = null;
+			try {
+				out = new FileOutputStream(fileIMG);
+			} catch (FileNotFoundException e) {
+				e.printStackTrace();
+			}
+			icon.compress(Bitmap.CompressFormat.PNG, 100, out); // bmp is your Bitmap instance
+			// PNG is a lossless format, the compression factor (100) is ignored
+			// add image
+			title = "PMAM";
+			subTitle = "Polícia Militar do Amazonas";
+
         }
 
         public void onOpenDocument(PdfWriter writer, Document document) {
@@ -62,56 +86,51 @@ import java.util.Locale;
 
 
         private void addHeader(PdfWriter writer){
-            PdfPTable header = new PdfPTable(2);
-            try {
-                // set defaults
-                header.setWidths(new int[]{2, 24});
-                header.setTotalWidth(527);
-                header.setLockedWidth(true);
-                header.getDefaultCell().setFixedHeight(40);
-                header.getDefaultCell().setBorder(Rectangle.BOTTOM);
-                header.getDefaultCell().setBorderColor(BaseColor.LIGHT_GRAY);
 
-                File dest = new File(context.getCacheDir(), "image_pmam.png");
+			if(title != null && subTitle != null){
 
-                Bitmap icon = BitmapFactory.decodeResource(context.getResources(),R.drawable.logo_pmam);
-                FileOutputStream out = null;
-                try {
-                    out = new FileOutputStream(dest);
-                } catch (FileNotFoundException e) {
-                    e.printStackTrace();
-                }
-                icon.compress(Bitmap.CompressFormat.PNG, 100, out); // bmp is your Bitmap instance
-                    // PNG is a lossless format, the compression factor (100) is ignored
-                // add image
-                Image logo = null;
-                try {
-                    logo = Image.getInstance(dest.getAbsolutePath());
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+				PdfPTable header = new PdfPTable(2);
+				try {
+					// set defaults
+					header.setWidths(new int[]{2, 24});
+					header.setTotalWidth(527);
+					header.setLockedWidth(true);
+					header.getDefaultCell().setFixedHeight(40);
+					header.getDefaultCell().setBorder(Rectangle.BOTTOM);
+					header.getDefaultCell().setBorderColor(BaseColor.LIGHT_GRAY);
 
-                header.addCell(logo);
+					// PNG is a lossless format, the compression factor (100) is ignored
+					// add image
+					if(fileIMG != null && fileIMG.exists()){
+						try {
+							Image logo = Image.getInstance(fileIMG.getAbsolutePath());
+							header.addCell(logo);
+						} catch (IOException e) {
+							e.printStackTrace();
+						}
+					}
 
-                // add text
-                PdfPCell text = new PdfPCell();
-                text.setPaddingBottom(15);
-                text.setPaddingLeft(10);
-                text.setBorder(Rectangle.BOTTOM);
-                text.setBorderColor(BaseColor.LIGHT_GRAY);
-                text.addElement(new Phrase("PMAM", new Font(Font.FontFamily.HELVETICA, 18)));
-                text.addElement(new Phrase("Polícia Militar do Amazonas", new Font(Font.FontFamily.HELVETICA, 14)));
-                header.addCell(text);
+					// add text
+					PdfPCell text = new PdfPCell();
+					text.setPaddingBottom(15);
+					text.setPaddingLeft(10);
+					text.setBorder(Rectangle.BOTTOM);
+					text.setBorderColor(BaseColor.LIGHT_GRAY);
+					text.addElement(new Phrase(title, new Font(Font.FontFamily.HELVETICA, 18)));
+					text.addElement(new Phrase(subTitle, new Font(Font.FontFamily.HELVETICA, 14)));
+					header.addCell(text);
 
-                // write content
-                header.writeSelectedRows(0, -1, 34, 803, writer.getDirectContent());
-            } catch(DocumentException de) {
-                throw new ExceptionConverter(de);
-            } /*catch (MalformedURLException e) {
+					// write content
+					header.writeSelectedRows(0, -1, 34, 803, writer.getDirectContent());
+				} catch(DocumentException de) {
+					throw new ExceptionConverter(de);
+				} /*catch (MalformedURLException e) {
                 throw new ExceptionConverter(e);
             } catch (IOException e) {
                 throw new ExceptionConverter(e);
             }*/
+			}
+
         }
 
         private void addFooter(PdfWriter writer){
