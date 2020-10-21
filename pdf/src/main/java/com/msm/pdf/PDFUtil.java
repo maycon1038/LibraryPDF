@@ -53,6 +53,25 @@ public class PDFUtil {
 	private pdfCreate pdfCreated;
 	private Document document;
 	private Paragraph preface;
+	/**
+	 * margin in x direction starting from the left
+	 */
+	private int marginLeft = 50;
+
+	/**
+	 * margin in x direction starting from the right
+	 */
+	private int marginRight = 75;
+
+	/**
+	 * margin in y direction starting from the top
+	 */
+	private int marginTop = 75;
+
+	/**
+	 * margin in y direction starting from the bottom
+	 */
+	private int marginBottom = 50;
 
 	private PDFUtil(Context context, String name) {
 		this.context = context;
@@ -114,7 +133,48 @@ public class PDFUtil {
 			File f = new File(filepart, fileName);
 			f.deleteOnExit();
 			FILE = new File(f.getPath());
-			createDocument();
+			//configuração do documento margem etc
+			document = new Document(PageSize.A4, marginLeft, marginRight, marginTop, marginBottom);
+			PdfWriter writer = null;
+			try {
+				writer = PdfWriter.getInstance(document, new FileOutputStream(FILE));
+				// adicionar cabeçalho e rodapé
+				HeaderFooterPageEvent event = new HeaderFooterPageEvent(context);
+				writer.setPageEvent(event);
+
+				document.open();
+				// adicionado titulo ao documento
+			} catch (DocumentException | FileNotFoundException e) {
+				e.printStackTrace();
+			}
+			return getDefault(context);
+		} else {
+			throw new NullPointerException("File não pode ser null");
+		}
+	}
+
+	public PDFUtil setFileOut(File filepart, String fileName, boolean addheaderAndFoter, int marginLeft, int marginRight, int marginTop, int marginBottom) {
+		if (filepart != null && fileName != null) {
+			File f = new File(filepart, fileName);
+			f.deleteOnExit();
+			FILE = new File(f.getPath());
+			//configuração do documento margem etc
+			document = new Document(PageSize.A4, marginLeft, marginRight, marginTop, marginBottom);
+			PdfWriter writer = null;
+			try {
+				writer = PdfWriter.getInstance(document, new FileOutputStream(FILE));
+				// adicionar cabeçalho e rodapé
+				if (addheaderAndFoter) {
+					HeaderFooterPageEvent event = new HeaderFooterPageEvent(context);
+					writer.setPageEvent(event);
+				}
+
+
+				document.open();
+				// adicionado titulo ao documento
+			} catch (DocumentException | FileNotFoundException e) {
+				e.printStackTrace();
+			}
 			return getDefault(context);
 		} else {
 			throw new NullPointerException("File não pode ser null");
@@ -196,6 +256,7 @@ public class PDFUtil {
 			preface.add(paragraph);
 		}
 	}
+
 	@SuppressLint("DefaultLocale")
 	public void addtable(ArrayList<ModeTablelPDF> mtable, int numeColumns) throws DocumentException {
 		PdfPTable table = new PdfPTable(numeColumns);
@@ -259,23 +320,7 @@ public class PDFUtil {
 	}
 
 	//definindo as principais configurações do pdf
-	private void createDocument() {
-		// create document
-		//configuração do documento margem etc
-		document = new Document(PageSize.A4, 15, 10, 110, 50);
-		PdfWriter writer = null;
-		try {
-			writer = PdfWriter.getInstance(document, new FileOutputStream(FILE));
-			// adicionar cabeçalho e rodapé
-			HeaderFooterPageEvent event = new HeaderFooterPageEvent(context);
-			writer.setPageEvent(event);
 
-			document.open();
-			// adicionado titulo ao documento
-		} catch (DocumentException | FileNotFoundException e) {
-			e.printStackTrace();
-		}
-	}
 
 	//definindo as principais configurações do pdf
 	private File getFilePdf() {
@@ -299,6 +344,7 @@ public class PDFUtil {
 		document.addAuthor(author); //
 		document.addCreator(creator); //
 	}
+
 	class LinkInCell implements PdfPCellEvent {
 		protected String url;
 
