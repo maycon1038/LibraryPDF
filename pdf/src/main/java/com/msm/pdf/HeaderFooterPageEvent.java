@@ -149,7 +149,7 @@ public class HeaderFooterPageEvent extends PdfPageEventHelper {
 
 			// add current page count
 			footer.getDefaultCell().setHorizontalAlignment(Element.ALIGN_RIGHT);
-			footer.addCell(new Phrase(String.format("Página %d de", writer.getPageNumber()), new Font(Font.FontFamily.HELVETICA, 8)));
+			footer.addCell(new Phrase(String.format("Pág. %d de", writer.getPageNumber()), new Font(Font.FontFamily.HELVETICA, 8)));
 
 			// add placeholder for total page count
 			PdfPCell totalPageCount = new PdfPCell(total);

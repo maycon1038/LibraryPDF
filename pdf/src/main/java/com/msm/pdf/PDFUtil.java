@@ -61,12 +61,12 @@ public class PDFUtil {
 	/**
 	 * margin in x direction starting from the right
 	 */
-	private int marginRight = 75;
+	private int marginRight = 50;
 
 	/**
 	 * margin in y direction starting from the top
 	 */
-	private int marginTop = 75;
+	private int marginTop = 110;
 
 	/**
 	 * margin in y direction starting from the bottom
