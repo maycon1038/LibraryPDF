@@ -1,38 +1,41 @@
 apply plugin: 'com.android.library'
-apply plugin: 'com.github.dcendents.android-maven'
 group='com.github.maycon1038'
-
+apply plugin: 'maven-publish'
+afterEvaluate {
+    publishing {
+        publications {
+            release(MavenPublication) {
+                // Configuração para versões mais antigas
+                artifact bundleReleaseAar
+                artifact sourcesJar // Opcional: inclui fontes
+                groupId = 'com.github.maycon1038'
+                artifactId = 'pdf'
+                version = '2.0.0'
+            }
+        }
+    }
+}
 android {
-    compileSdkVersion 29
-
-
-
+    compileSdk 35
     defaultConfig {
-        minSdkVersion 16
-        targetSdkVersion 29
-        versionCode 1
-        versionName "1.0"
-
+        minSdkVersion 23
+        targetSdkVersion 35
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
     }
-
-    buildTypes {
-        release {
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-        }
-    }
+    namespace 'com.msm.pdf'
 
 }
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation 'androidx.appcompat:appcompat:1.3.0-alpha02'
-	//noinspection AnnotationProcessorOnCompilePath
-	implementation 'org.projectlombok:lombok:1.18.12'
-	annotationProcessor 'org.projectlombok:lombok:1.18.12'
-    testImplementation 'junit:junit:4.13.1'
-    implementation 'com.itextpdf:itextpdf:5.5.6'
-    implementation 'com.google.code.gson:gson:2.8.6'
+    implementation 'androidx.appcompat:appcompat:1.7.0'
+    testImplementation 'junit:junit:4.13.2'
+    implementation 'com.itextpdf:itextpdf:5.5.13.4'
+    implementation 'com.google.code.gson:gson:2.13.1'
+}
+// Tarefa sourcesJar deve estar no mesmo arquivo do módulo Android
+task sourcesJar(type: Jar) {
+    from android.sourceSets.main.java.srcDirs
+    archiveClassifier.set('sources')
 }
