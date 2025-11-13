@@ -10,6 +10,7 @@ import com.itextpdf.text.Chunk;
 import com.itextpdf.text.Document;
 import com.itextpdf.text.DocumentException;
 import com.itextpdf.text.Font;
+import com.itextpdf.text.Image;
 import com.itextpdf.text.PageSize;
 import com.itextpdf.text.Paragraph;
 import com.itextpdf.text.Phrase;
@@ -97,7 +98,7 @@ public class PDFUtil {
 		}
 	}
 
-	private static void addEmptyLine(Paragraph paragraph, int number) {
+	public static void addEmptyLine(Paragraph paragraph, int number) {
 		for (int i = 0; i < number; i++) {
 			paragraph.add(new Paragraph(" "));
 		}
@@ -113,7 +114,7 @@ public class PDFUtil {
 
 				addresses = gcd.getFromLocation(lat, lng, 1);
 			}
-			if (addresses != null && addresses.size() > 0) {
+			if (addresses != null && !addresses.isEmpty()) {
 				//  local = addresses.get(0).getAddressLine(0);
 				//  Log.d(TAG, "Locale addresses1 "+ addresses.get(0).getSubLocality() + " addresses2 "+ addresses.get(0).getLocality());
 				//   Log.d(TAG, "Locale addresses1 "+ addresses.get(0).getAdminArea() + " addresses2 "+ addresses.get(0).getSubAdminArea());
@@ -210,7 +211,7 @@ public class PDFUtil {
 		// We add one empty line
 		addEmptyLine(preface, 1);
 
-		if (modepdf != null && modepdf.size() > 0) {
+		if (modepdf != null && !modepdf.isEmpty()) {
 			for (int i = 0; i < modepdf.size(); i++) {
 				//grifando o texto
 				ModelPDF mpdf = modepdf.get(i);
@@ -228,6 +229,26 @@ public class PDFUtil {
 
 	}
 
+
+	public void addPage(ArrayList<ModelPDF> modepdf,   int linesBefore, int lLinesAfter) throws DocumentException {
+
+		Paragraph preface = new Paragraph();
+		// We add one empty line
+		addEmptyLine(preface, linesBefore);
+
+		if (modepdf != null && !modepdf.isEmpty()) {
+			for (int i = 0; i < modepdf.size(); i++) {
+				//grifando o texto
+				ModelPDF mpdf = modepdf.get(i);
+				addTextinParagraph(mpdf, preface);
+			}
+		}
+		addEmptyLine(preface, lLinesAfter);
+
+		document.add(preface);
+
+	}
+
 	public void addData(ModelPDF body) throws DocumentException {
 
 		Paragraph preface = new Paragraph();
@@ -238,6 +259,22 @@ public class PDFUtil {
 		addTextinParagraph(body, preface);
 
 		addEmptyLine(preface, 1);
+
+
+		document.add(preface);
+
+	}
+
+	public void addData(ModelPDF body,  int linesBefore, int lLinesAfter) throws DocumentException {
+
+		Paragraph preface = new Paragraph();
+		// We add one empty line
+
+		addEmptyLine(preface, linesBefore);
+
+		addTextinParagraph(body, preface);
+
+		addEmptyLine(preface, lLinesAfter);
 
 
 		document.add(preface);
@@ -288,7 +325,7 @@ public class PDFUtil {
 		addEmptyLine(preface, 1);
 
 		// We add one empty line
-		if (mtable != null && mtable.size() > 0) {
+		if (mtable != null && !mtable.isEmpty()) {
 			for (int i = 0; i < mtable.size(); i++) {
 
 				ModeTablelPDF body = mtable.get(i);
@@ -319,6 +356,59 @@ public class PDFUtil {
 				}
 			}
 
+		}
+		preface.add(table);
+		document.add(preface);
+	}
+
+
+	@SuppressLint("DefaultLocale")
+	public void addTableImgs(ModeTablelPDF title,  List<File> pathImages,  int numeColumns) throws DocumentException {
+
+		PdfPTable table = new PdfPTable(numeColumns);
+		// We add one empty line
+		Paragraph preface = new Paragraph();
+		addEmptyLine(preface, 1);
+
+		if (title != null && title.getTxt() != null) {
+			Font font = title.getFont() != null ? title.getFont() : new Font(Font.FontFamily.TIMES_ROMAN, 12, Font.NORMAL);
+			Phrase phrase = new Phrase();
+			Chunk chunk = new Chunk(title.getTxt(), font);
+			//grifando o texto
+			if (title.underline) {
+				chunk.setUnderline(0.1f, -1f);
+			} else if (title.strike) {
+				chunk.setUnderline(1f, font.getSize() / 2);
+			}
+
+			phrase.add(chunk);
+
+			PdfPCell c1 = new PdfPCell(phrase);
+
+			c1.setHorizontalAlignment(title.getAlign());
+			c1.setVerticalAlignment(title.getAlign());
+			c1.setColspan(title.getColSpan());
+			c1.setRowspan(title.getRowSpan());
+			if (title.getBackground() != null) {
+				c1.setBackgroundColor(title.getBackground());
+			}
+			if (title.getMyLink() != null) {
+				c1.setCellEvent(new LinkInCell(title.getMyLink()));
+			}
+			table.addCell(c1);
+		}
+
+		if (pathImages != null && !pathImages.isEmpty()) {
+			for (File imageFile : pathImages) {
+				try {
+					Image img = Image.getInstance(imageFile.getAbsolutePath());
+					// Opcional: Escalar a imagem para caber na célula
+					// img.scaleToFit(100, 100);
+					table.addCell(img);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
 		}
 		preface.add(table);
 		document.add(preface);
