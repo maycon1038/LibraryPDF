@@ -321,6 +321,7 @@ public class PDFUtil {
 	@SuppressLint("DefaultLocale")
 	public void addtable(ArrayList<ModeTablelPDF> mtable, int numeColumns) throws DocumentException {
 		PdfPTable table = new PdfPTable(numeColumns);
+		table.setWidthPercentage(100); // Faz a tabela ocupar toda a largura disponível (respeitando as margens)
 		// We add one empty line
 		Paragraph preface = new Paragraph();
 		addEmptyLine(preface, 1);
@@ -367,8 +368,7 @@ public class PDFUtil {
 	public void addTableImgs(ModeTablelPDF title, List<File> pathImages, int numeColumns) throws DocumentException {
 		// Garante que o número de colunas seja 2 para o layout lado a lado.
 		// Se você precisar de mais flexibilidade, pode usar o 'numeColumns' recebido.
-		final int COLUMNS = 2;
-		PdfPTable table = new PdfPTable(COLUMNS);
+		PdfPTable table = new PdfPTable(numeColumns);
 		table.setWidthPercentage(100); // Faz a tabela ocupar toda a largura disponível (respeitando as margens)
 
 		Paragraph preface = new Paragraph();
@@ -382,7 +382,7 @@ public class PDFUtil {
 
 			titleCell.setHorizontalAlignment(title.getAlign());
 			titleCell.setVerticalAlignment(title.getAlign());
-			titleCell.setColspan(COLUMNS); // Faz a célula do título ocupar todas as colunas
+			titleCell.setColspan(numeColumns); // Faz a célula do título ocupar todas as colunas
 			titleCell.setBorder(Rectangle.NO_BORDER); // Remove a borda da célula do título
 			if (title.getBackground() != null) {
 				titleCell.setBackgroundColor(title.getBackground());
@@ -391,7 +391,7 @@ public class PDFUtil {
 
 			// Adiciona um pequeno espaço após o título
 			PdfPCell spaceCell = new PdfPCell(new Phrase(" "));
-			spaceCell.setColspan(COLUMNS);
+			spaceCell.setColspan(numeColumns);
 			spaceCell.setBorder(Rectangle.NO_BORDER);
 			spaceCell.setFixedHeight(10f);
 			table.addCell(spaceCell);
@@ -422,7 +422,7 @@ public class PDFUtil {
 
 			// Se o número de imagens for ímpar, adiciona uma célula vazia no final
 			// para garantir que a tabela seja concluída corretamente.
-			if (pathImages.size() % COLUMNS != 0) {
+			if (pathImages.size() % numeColumns != 0) {
 				PdfPCell emptyCell = new PdfPCell(new Phrase(" "));
 				emptyCell.setBorder(Rectangle.NO_BORDER);
 				table.addCell(emptyCell);
