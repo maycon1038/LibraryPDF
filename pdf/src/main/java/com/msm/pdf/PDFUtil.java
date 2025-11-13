@@ -5,6 +5,7 @@ import android.content.Context;
 import android.location.Address;
 import android.location.Geocoder;
 
+import com.itextpdf.text.BadElementException;
 import com.itextpdf.text.BaseColor;
 import com.itextpdf.text.Chunk;
 import com.itextpdf.text.Document;
@@ -363,53 +364,71 @@ public class PDFUtil {
 
 
 	@SuppressLint("DefaultLocale")
-	public void addTableImgs(ModeTablelPDF title,  List<File> pathImages,  int numeColumns) throws DocumentException {
+	public void addTableImgs(ModeTablelPDF title, List<File> pathImages, int numeColumns) throws DocumentException {
+		// Garante que o número de colunas seja 2 para o layout lado a lado.
+		// Se você precisar de mais flexibilidade, pode usar o 'numeColumns' recebido.
+		final int COLUMNS = 2;
+		PdfPTable table = new PdfPTable(COLUMNS);
+		table.setWidthPercentage(100); // Faz a tabela ocupar toda a largura disponível (respeitando as margens)
 
-		PdfPTable table = new PdfPTable(numeColumns);
-		// We add one empty line
 		Paragraph preface = new Paragraph();
 		addEmptyLine(preface, 1);
 
+		// Adiciona um título que ocupa a largura total da tabela, se fornecido
 		if (title != null && title.getTxt() != null) {
 			Font font = title.getFont() != null ? title.getFont() : new Font(Font.FontFamily.TIMES_ROMAN, 12, Font.NORMAL);
-			Phrase phrase = new Phrase();
-			Chunk chunk = new Chunk(title.getTxt(), font);
-			//grifando o texto
-			if (title.underline) {
-				chunk.setUnderline(0.1f, -1f);
-			} else if (title.strike) {
-				chunk.setUnderline(1f, font.getSize() / 2);
-			}
+			Phrase phrase = new Phrase(new Chunk(title.getTxt(), font));
+			PdfPCell titleCell = new PdfPCell(phrase);
 
-			phrase.add(chunk);
-
-			PdfPCell c1 = new PdfPCell(phrase);
-
-			c1.setHorizontalAlignment(title.getAlign());
-			c1.setVerticalAlignment(title.getAlign());
-			c1.setColspan(title.getColSpan());
-			c1.setRowspan(title.getRowSpan());
+			titleCell.setHorizontalAlignment(title.getAlign());
+			titleCell.setVerticalAlignment(title.getAlign());
+			titleCell.setColspan(COLUMNS); // Faz a célula do título ocupar todas as colunas
+			titleCell.setBorder(Rectangle.NO_BORDER); // Remove a borda da célula do título
 			if (title.getBackground() != null) {
-				c1.setBackgroundColor(title.getBackground());
+				titleCell.setBackgroundColor(title.getBackground());
 			}
-			if (title.getMyLink() != null) {
-				c1.setCellEvent(new LinkInCell(title.getMyLink()));
-			}
-			table.addCell(c1);
+			table.addCell(titleCell);
+
+			// Adiciona um pequeno espaço após o título
+			PdfPCell spaceCell = new PdfPCell(new Phrase(" "));
+			spaceCell.setColspan(COLUMNS);
+			spaceCell.setBorder(Rectangle.NO_BORDER);
+			spaceCell.setFixedHeight(10f);
+			table.addCell(spaceCell);
 		}
 
+		// Processa a lista de imagens e as adiciona à tabela
 		if (pathImages != null && !pathImages.isEmpty()) {
 			for (File imageFile : pathImages) {
 				try {
 					Image img = Image.getInstance(imageFile.getAbsolutePath());
-					// Opcional: Escalar a imagem para caber na célula
-					// img.scaleToFit(100, 100);
-					table.addCell(img);
-				} catch (IOException e) {
+
+					// Cria uma célula para a imagem
+					PdfPCell imageCell = new PdfPCell(img, true); // 'true' para escalar a imagem
+					imageCell.setBorder(Rectangle.NO_BORDER); // Remove a borda da célula da imagem
+					imageCell.setPadding(5); // Adiciona um pequeno espaçamento ao redor da imagem
+					imageCell.setHorizontalAlignment(PdfPCell.ALIGN_CENTER);
+
+					table.addCell(imageCell);
+
+				} catch (IOException | BadElementException e) {
+					// Se uma imagem falhar, adiciona uma célula vazia para não quebrar o layout
 					e.printStackTrace();
+					PdfPCell emptyCell = new PdfPCell(new Phrase("Erro ao carregar imagem"));
+					emptyCell.setBorder(Rectangle.NO_BORDER);
+					table.addCell(emptyCell);
 				}
 			}
+
+			// Se o número de imagens for ímpar, adiciona uma célula vazia no final
+			// para garantir que a tabela seja concluída corretamente.
+			if (pathImages.size() % COLUMNS != 0) {
+				PdfPCell emptyCell = new PdfPCell(new Phrase(" "));
+				emptyCell.setBorder(Rectangle.NO_BORDER);
+				table.addCell(emptyCell);
+			}
 		}
+
 		preface.add(table);
 		document.add(preface);
 	}
