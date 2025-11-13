@@ -10,7 +10,7 @@ afterEvaluate {
                 artifact sourcesJar // Opcional: inclui fontes
                 groupId = 'com.github.maycon1038'
                 artifactId = 'pdf'
-                version = '2.0.1'
+                version = '2.0.5'
             }
         }
     }
@@ -35,10 +35,10 @@ android {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation 'androidx.appcompat:appcompat:1.7.0'
+    implementation 'androidx.appcompat:appcompat:1.7.1'
     testImplementation 'junit:junit:4.13.2'
     implementation 'com.itextpdf:itextpdf:5.5.13.4'
-    implementation 'com.google.code.gson:gson:2.13.1'
+    implementation 'com.google.code.gson:gson:2.13.2'
 }
 // Tarefa sourcesJar deve estar no mesmo arquivo do módulo Android
 task sourcesJar(type: Jar) {
